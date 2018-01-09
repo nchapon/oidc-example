@@ -1,0 +1,21 @@
+* Getting Started with Vue, Webpack & Bootstrap
+A partir de https://medium.com/@BMatt92656920/getting-started-with-vue-webpack-bootstrap-fb69b24e6f3d
+** Installation
+
+#+NAME: npn-install
+#+BEGIN_SRC shell
+npm install
+#+END_SRC
+** Build
+Construction du fichier bundle.js dans répertoire build
+#+NAME: build
+#+BEGIN_SRC shell
+npm run build
+#+END_SRC
+** Execution en dev
+#+NAME: start
+#+BEGIN_SRC shell
+npm run start
+#+END_SRC
+
+App disponible sur http://localhost:4040
