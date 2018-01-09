@@ -10,6 +10,12 @@ Exemple de code permettant de sécuriser une API à partir du standard OpenID Co
 docker network create oidc-example-bridge
 #+END_SRC
 
+** Keycloack
+
+#+NAME: docker-keycloack
+#+BEGIN_SRC shell
+docker run --name oidc-provider -p 8080:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=password jboss/keycloak
+#+END_SRC
 ** API
 Construire l'application Spring Boot avec Docker
 
@@ -17,28 +23,36 @@ Construire l'application Spring Boot avec Docker
 docker build -t oidc-example-api .
 #+END_SRC
 
-** Keycloack
+Exécuter l'application avec la commande :
 
-#+NAME: docker-keycloack
+#+NAME: docker-run-api
 #+BEGIN_SRC shell
-docker run --name oidc-provider -p 8080:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=password jboss/keycloak
+docker run -d --name oidc-example-api \
+    --net oidc-example-bridge \
+    oidc-example-api:latest
 #+END_SRC
+
+#+RESULTS: docker-run-api
+: f867454b6d7f292a47d5fb57c763b963a34ea0b74dff347e74f94abd4042046d
+
 ** Kong
 *** Base de données
  #+NAME: cassandra
  #+BEGIN_SRC shell
  docker run -d --name kong-database \
+               --net oidc-example-bridge \
                -p 9042:9042 \
                cassandra:3
  #+END_SRC
 
  #+RESULTS: cassandra
- : 7ec2ad0a4d62ea2a964d3d321d72b442cf9ed5ca3e70e20629a4dc864b4b3762
+ : c14fd0339f6c3b14473bd2d739d1a70ff9758a412b325f3c5d43be3a44e48970
 
 *** Database migration
 #+NAME: database-migration
 #+BEGIN_SRC shell
 docker run --rm \
+    --net oidc-example-bridge \
     --link kong-database:kong-database \
     -e "KONG_DATABASE=cassandra" \
     -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database" \
@@ -46,73 +60,64 @@ docker run --rm \
 #+END_SRC
 
 #+RESULTS: database-migration
-| migrating             | core                  | for        | keyspace | kong                                              |          |             |
-| core                  | migrated              | up         | to:      | 2015-01-12-175310_skeleton                        |          |             |
-| core                  | migrated              | up         | to:      | 2015-01-12-175310_init_schema                     |          |             |
-| core                  | migrated              | up         | to:      | 2015-11-23-817313_nodes                           |          |             |
-| core                  | migrated              | up         | to:      | 2016-02-25-160900_remove_null_consumer_id         |          |             |
-| core                  | migrated              | up         | to:      | 2016-02-29-121813_remove_ttls                     |          |             |
-| core                  | migrated              | up         | to:      | 2016-09-05-212515_retries_step_1                  |          |             |
-| core                  | migrated              | up         | to:      | 2016-09-05-212515_retries_step_2                  |          |             |
-| core                  | migrated              | up         | to:      | 2016-09-16-141423_upstreams                       |          |             |
-| core                  | migrated              | up         | to:      | 2016-12-14-172100_move_ssl_certs_to_core          |          |             |
-| core                  | migrated              | up         | to:      | 2016-11-11-151900_new_apis_router_1               |          |             |
-| core                  | migrated              | up         | to:      | 2016-11-11-151900_new_apis_router_2               |          |             |
-| core                  | migrated              | up         | to:      | 2016-11-11-151900_new_apis_router_3               |          |             |
-| core                  | migrated              | up         | to:      | 2017-01-24-132600_upstream_timeouts               |          |             |
-| core                  | migrated              | up         | to:      | 2017-01-24-132600_upstream_timeouts_2             |          |             |
-| core                  | migrated              | up         | to:      | 2017-03-27-132300_anonymous                       |          |             |
-| core                  | migrated              | up         | to:      | 2017-04-04-145100_cluster_events                  |          |             |
-| core                  | migrated              | up         | to:      | 2017-05-19-173100_remove_nodes_table              |          |             |
-| migrating             | response-transformer  | for        | keyspace | kong                                              |          |             |
-| response-transformer  | migrated              | up         | to:      | 2016-03-10-160000_resp_trans_schema_changes       |          |             |
-| migrating             | rate-limiting         | for        | keyspace | kong                                              |          |             |
-| rate-limiting         | migrated              | up         | to:      | 2015-08-03-132400_init_ratelimiting               |          |             |
-| rate-limiting         | migrated              | up         | to:      | 2016-07-25-471385_ratelimiting_policies           |          |             |
-| migrating             | acl                   | for        | keyspace | kong                                              |          |             |
-| acl                   | migrated              | up         | to:      | 2015-08-25-841841_init_acl                        |          |             |
-| migrating             | ip-restriction        | for        | keyspace | kong                                              |          |             |
-| ip-restriction        | migrated              | up         | to:      | 2016-05-24-remove-cache                           |          |             |
-| migrating             | statsd                | for        | keyspace | kong                                              |          |             |
-| statsd                | migrated              | up         | to:      | 2017-06-09-160000_statsd_schema_changes           |          |             |
-| migrating             | jwt                   | for        | keyspace | kong                                              |          |             |
-| jwt                   | migrated              | up         | to:      | 2015-06-09-jwt-auth                               |          |             |
-| jwt                   | migrated              | up         | to:      | 2016-03-07-jwt-alg                                |          |             |
-| migrating             | cors                  | for        | keyspace | kong                                              |          |             |
-| cors                  | migrated              | up         | to:      | 2017-03-14_multiple_orgins                        |          |             |
-| migrating             | galileo               | for        | keyspace | kong                                              |          |             |
-| galileo               | migrated              | up         | to:      | 2016-04-15_galileo-import-mashape-analytics       |          |             |
-| migrating             | basic-auth            | for        | keyspace | kong                                              |          |             |
-| basic-auth            | migrated              | up         | to:      | 2015-08-03-132400_init_basicauth                  |          |             |
-| migrating             | key-auth              | for        | keyspace | kong                                              |          |             |
-| key-auth              | migrated              | up         | to:      | 2015-07-31-172400_init_keyauth                    |          |             |
-| migrating             | response-ratelimiting | for        | keyspace | kong                                              |          |             |
-| response-ratelimiting | migrated              | up         | to:      | 2015-08-21_init_response-rate-limiting            |          |             |
-| response-ratelimiting | migrated              | up         | to:      | 2016-08-04-321512_response-rate-limiting_policies |          |             |
-| migrating             | request-transformer   | for        | keyspace | kong                                              |          |             |
-| request-transformer   | migrated              | up         | to:      | 2016-03-10-160000_req_trans_schema_changes        |          |             |
-| migrating             | datadog               | for        | keyspace | kong                                              |          |             |
-| datadog               | migrated              | up         | to:      | 2017-06-09-160000_datadog_schema_changes          |          |             |
-| migrating             | hmac-auth             | for        | keyspace | kong                                              |          |             |
-| hmac-auth             | migrated              | up         | to:      | 2015-09-16-132400_init_hmacauth                   |          |             |
-| hmac-auth             | migrated              | up         | to:      | 2017-06-21-132400_init_hmacauth                   |          |             |
-| migrating             | oauth2                | for        | keyspace | kong                                              |          |             |
-| oauth2                | migrated              | up         | to:      | 2015-08-03-132400_init_oauth2                     |          |             |
-| oauth2                | migrated              | up         | to:      | 2015-08-24-215800_cascade_delete_index            |          |             |
-| oauth2                | migrated              | up         | to:      | 2016-02-29-435612_remove_ttl                      |          |             |
-| oauth2                | migrated              | up         | to:      | 2016-04-14-283949_serialize_redirect_uri          |          |             |
-| oauth2                | migrated              | up         | to:      | 2016-07-15-oauth2_code_credential_id              |          |             |
-| oauth2                | migrated              | up         | to:      | 2016-09-19-oauth2_code_index                      |          |             |
-| oauth2                | migrated              | up         | to:      | 2016-09-19-oauth2_api_id                          |          |             |
-| oauth2                | migrated              | up         | to:      | 2016-12-15-set_global_credentials                 |          |             |
-| 43                    | migrations            | ran        |          |                                                   |          |             |
-| waiting               | for                   | Cassandra  | schema   | consensus                                         | (10000ms | timeout)... |
-| Cassandra             | schema                | consensus: | reached  |                                                   |          |             |
+| migrating             | core                  | for | keyspace | kong                                              |
+| core                  | migrated              | up  | to:      | 2015-01-12-175310_skeleton                        |
+| core                  | migrated              | up  | to:      | 2015-01-12-175310_init_schema                     |
+| core                  | migrated              | up  | to:      | 2015-11-23-817313_nodes                           |
+| core                  | migrated              | up  | to:      | 2016-02-25-160900_remove_null_consumer_id         |
+| core                  | migrated              | up  | to:      | 2016-02-29-121813_remove_ttls                     |
+| core                  | migrated              | up  | to:      | 2016-09-05-212515_retries_step_1                  |
+| core                  | migrated              | up  | to:      | 2016-09-05-212515_retries_step_2                  |
+| core                  | migrated              | up  | to:      | 2016-09-16-141423_upstreams                       |
+| core                  | migrated              | up  | to:      | 2016-12-14-172100_move_ssl_certs_to_core          |
+| core                  | migrated              | up  | to:      | 2016-11-11-151900_new_apis_router_1               |
+| core                  | migrated              | up  | to:      | 2016-11-11-151900_new_apis_router_2               |
+| core                  | migrated              | up  | to:      | 2016-11-11-151900_new_apis_router_3               |
+| core                  | migrated              | up  | to:      | 2017-01-24-132600_upstream_timeouts               |
+| core                  | migrated              | up  | to:      | 2017-01-24-132600_upstream_timeouts_2             |
+| migrating             | request-transformer   | for | keyspace | kong                                              |
+| request-transformer   | migrated              | up  | to:      | 2016-03-10-160000_req_trans_schema_changes        |
+| migrating             | rate-limiting         | for | keyspace | kong                                              |
+| rate-limiting         | migrated              | up  | to:      | 2015-08-03-132400_init_ratelimiting               |
+| rate-limiting         | migrated              | up  | to:      | 2016-07-25-471385_ratelimiting_policies           |
+| migrating             | key-auth              | for | keyspace | kong                                              |
+| key-auth              | migrated              | up  | to:      | 2015-07-31-172400_init_keyauth                    |
+| migrating             | jwt                   | for | keyspace | kong                                              |
+| jwt                   | migrated              | up  | to:      | 2015-06-09-jwt-auth                               |
+| jwt                   | migrated              | up  | to:      | 2016-03-07-jwt-alg                                |
+| migrating             | response-ratelimiting | for | keyspace | kong                                              |
+| response-ratelimiting | migrated              | up  | to:      | 2015-08-21_init_response-rate-limiting            |
+| response-ratelimiting | migrated              | up  | to:      | 2016-08-04-321512_response-rate-limiting_policies |
+| migrating             | ip-restriction        | for | keyspace | kong                                              |
+| ip-restriction        | migrated              | up  | to:      | 2016-05-24-remove-cache                           |
+| migrating             | galileo               | for | keyspace | kong                                              |
+| galileo               | migrated              | up  | to:      | 2016-04-15_galileo-import-mashape-analytics       |
+| migrating             | cors                  | for | keyspace | kong                                              |
+| cors                  | migrated              | up  | to:      | 2017-03-14_multiple_orgins                        |
+| migrating             | acl                   | for | keyspace | kong                                              |
+| acl                   | migrated              | up  | to:      | 2015-08-25-841841_init_acl                        |
+| migrating             | basic-auth            | for | keyspace | kong                                              |
+| basic-auth            | migrated              | up  | to:      | 2015-08-03-132400_init_basicauth                  |
+| migrating             | oauth2                | for | keyspace | kong                                              |
+| oauth2                | migrated              | up  | to:      | 2015-08-03-132400_init_oauth2                     |
+| oauth2                | migrated              | up  | to:      | 2015-08-24-215800_cascade_delete_index            |
+| oauth2                | migrated              | up  | to:      | 2016-02-29-435612_remove_ttl                      |
+| oauth2                | migrated              | up  | to:      | 2016-04-14-283949_serialize_redirect_uri          |
+| oauth2                | migrated              | up  | to:      | 2016-07-15-oauth2_code_credential_id              |
+| oauth2                | migrated              | up  | to:      | 2016-09-19-oauth2_code_index                      |
+| oauth2                | migrated              | up  | to:      | 2016-09-19-oauth2_api_id                          |
+| oauth2                | migrated              | up  | to:      | 2016-12-15-set_global_credentials                 |
+| migrating             | response-transformer  | for | keyspace | kong                                              |
+| response-transformer  | migrated              | up  | to:      | 2016-03-10-160000_resp_trans_schema_changes       |
+| migrating             | hmac-auth             | for | keyspace | kong                                              |
+| hmac-auth             | migrated              | up  | to:      | 2015-09-16-132400_init_hmacauth                   |
+| 37                    | migrations            | ran |          |                                                   |
 *** Démarrage de kong
 
 #+NAME: start-kong
 #+BEGIN_SRC shell
 docker run -d --name kong \
+    --net oidc-example-bridge \
     --link kong-database:kong-database \
     -e "KONG_DATABASE=cassandra" \
     -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database" \
@@ -128,10 +133,10 @@ docker run -d --name kong \
 #+END_SRC
 
 #+RESULTS: start-kong
-: a7ad1f6022f78833a98714fd3d84f25c5d5d4b90ca7aaf4921380194aaa1f57d
+: 41bbbd6162f2d54b5339d1faaf37b6396539e4064650d71541e16c97a54e365c
 
-*** Configuration
-**** Check
+** Kong configuration
+*** Check
 #+NAME: check-kong
 #+BEGIN_SRC restclient
 GET http://localhost:8001/
@@ -140,201 +145,180 @@ GET http://localhost:8001/
 #+RESULTS: check-kong
 #+BEGIN_SRC js
 {
-  "hostname": "a7ad1f6022f7",
-  "timers": {
-    "running": 0,
-    "pending": 4
-  },
-  "prng_seeds": {
-    "pid: 49": 137108209244,
-    "pid: 51": 148134124924,
-    "pid: 52": 143311010159,
-    "pid: 50": 172190521351
-  },
-  "lua_version": "LuaJIT 2.1.0-beta2",
-  "configuration": {
-    "admin_port": 8001,
-    "ssl_cert_key_default": "/usr/local/kong/ssl/kong-default.key",
-    "ssl_cert_default": "/usr/local/kong/ssl/kong-default.crt",
-    "cassandra_keyspace": "kong",
-    "admin_ssl_cert_default": "/usr/local/kong/ssl/admin-kong-default.crt",
-    "nginx_admin_acc_logs": "/usr/local/kong/logs/admin_access.log",
-    "admin_ssl_cert_csr_default": "/usr/local/kong/ssl/admin-kong-default.csr",
-    "client_body_buffer_size": "8k",
-    "plugins": {
-      "oauth2": true,
-      "ip-restriction": true,
-      "acl": true,
-      "request-transformer": true,
-      "file-log": true,
-      "udp-log": true,
-      "loggly": true,
-      "galileo": true,
-      "syslog": true,
-      "request-size-limiting": true,
-      "bot-detection": true,
-      "response-ratelimiting": true,
-      "aws-lambda": true,
-      "tcp-log": true,
-      "datadog": true,
-      "runscope": true,
-      "hmac-auth": true,
-      "rate-limiting": true,
-      "http-log": true,
-      "request-termination": true,
-      "ldap-auth": true,
+  "plugins": {
+    "available_on_server": {
       "key-auth": true,
-      "basic-auth": true,
-      "cors": true,
-      "jwt": true,
+      "response-ratelimiting": true,
       "statsd": true,
+      "aws-lambda": true,
+      "galileo": true,
+      "request-size-limiting": true,
+      "datadog": true,
+      "ip-restriction": true,
+      "file-log": true,
+      "cors": true,
+      "udp-log": true,
+      "bot-detection": true,
+      "acl": true,
+      "oauth2": true,
+      "hmac-auth": true,
+      "tcp-log": true,
+      "basic-auth": true,
+      "response-transformer": true,
+      "loggly": true,
+      "http-log": true,
+      "request-transformer": true,
+      "runscope": true,
+      "request-termination": true,
+      "jwt": true,
       "correlation-id": true,
-      "response-transformer": true
+      "rate-limiting": true,
+      "ldap-auth": true,
+      "syslog": true
     },
-    "pg_port": 5432,
-    "kong_env": "/usr/local/kong/.kong_env",
-    "db_update_frequency": 5,
-    "anonymous_reports": true,
-    "nginx_daemon": "off",
-    "client_ssl_cert_key_default": "/usr/local/kong/ssl/kong-default.key",
-    "cassandra_repl_factor": 1,
-    "real_ip_recursive": "off",
-    "db_cache_ttl": 3600,
+    "enabled_in_cluster": null
+  },
+  "hostname": "41bbbd6162f2",
+  "tagline": "Welcome to kong",
+  "lua_version": "LuaJIT 2.1.0-beta2",
+  "prng_seeds": {
+    "pid: 83": 184150106441,
+    "pid: 81": 171941725411,
+    "pid: 84": 951189224570,
+    "pid: 82": 152344012914
+  },
+  "version": "0.10.2",
+  "configuration": {
+    "cluster_listen_rpc": "127.0.0.1:7373",
     "admin_listen_ssl": "0.0.0.0:8444",
-    "cassandra_ssl_verify": false,
-    "admin_ssl_cert_key_default": "/usr/local/kong/ssl/admin-kong-default.key",
-    "admin_ssl": true,
+    "admin_ssl_cert_csr_default": "/usr/local/kong/ssl/admin-kong-default.csr",
     "ssl_cert": "/usr/local/kong/ssl/kong-default.crt",
-    "admin_http2": false,
-    "log_level": "notice",
-    "dns_hostsfile": "/etc/hosts",
-    "cassandra_schema_consensus_timeout": 10000,
-    "nginx_kong_conf": "/usr/local/kong/nginx-kong.conf",
-    "admin_ssl_cert": "/usr/local/kong/ssl/admin-kong-default.crt",
-    "cassandra_timeout": 5000,
-    "cassandra_lb_policy": "RoundRobin",
-    "latency_tokens": true,
-    "cassandra_repl_strategy": "SimpleStrategy",
-    "proxy_port": 8000,
-    "cassandra_consistency": "ONE",
-    "pg_ssl": false,
-    "dns_not_found_ttl": 30,
-    "pg_ssl_verify": false,
-    "admin_error_log": "/dev/stderr",
-    "client_max_body_size": "0",
+    "serf_event": "/usr/local/kong/serf/serf_event.sh",
+    "admin_ssl_cert_key_default": "/usr/local/kong/ssl/admin-kong-default.key",
+    "prefix": "/usr/local/kong",
+    "nginx_conf": "/usr/local/kong/nginx.conf",
+    "cassandra_ssl_verify": false,
     "proxy_listen_ssl": "0.0.0.0:8443",
-    "http2": false,
-    "ssl_cipher_suite": "modern",
-    "real_ip_header": "X-Real-IP",
-    "admin_ssl_ip": "0.0.0.0",
+    "cassandra_timeout": 5000,
+    "pg_user": "kong",
+    "kong_env": "/usr/local/kong/.kong_env",
+    "ssl": true,
+    "lua_code_cache": "on",
+    "serf_pid": "/usr/local/kong/pids/serf.pid",
+    "cassandra_username": "kong",
+    "custom_plugins": null,
+    "nginx_daemon": "off",
+    "admin_ssl_cert_key": "/usr/local/kong/ssl/admin-kong-default.key",
     "lua_socket_pool_size": 30,
-    "proxy_error_log": "/dev/stderr",
+    "server_tokens": true,
+    "dns_hostsfile": "/etc/hosts",
+    "admin_ssl_cert": "/usr/local/kong/ssl/admin-kong-default.crt",
+    "cluster_listen": "0.0.0.0:7946",
+    "nginx_pid": "/usr/local/kong/pids/nginx.pid",
+    "admin_port": 8001,
+    "database": "cassandra",
+    "pg_ssl_verify": false,
+    "cassandra_repl_strategy": "SimpleStrategy",
+    "serf_node_id": "/usr/local/kong/serf/serf.id",
+    "dns_resolver": null,
+    "admin_ssl_ip": "0.0.0.0",
+    "proxy_ssl_ip": "0.0.0.0",
+    "admin_ip": "0.0.0.0",
+    "pg_database": "kong",
+    "lua_ssl_verify_depth": 1,
+    "proxy_ssl_port": 8443,
+    "pg_ssl": false,
+    "proxy_listen": "0.0.0.0:8000",
+    "proxy_ip": "0.0.0.0",
     "cassandra_contact_points": [
       "kong-database"
     ],
-    "client_ssl": false,
+    "nginx_worker_processes": "auto",
+    "mem_cache_size": "128m",
+    "log_level": "notice",
+    "serf_log": "/usr/local/kong/logs/serf.log",
+    "ssl_cert_csr_default": "/usr/local/kong/ssl/kong-default.csr",
+    "anonymous_reports": true,
+    "ssl_cert_key_default": "/usr/local/kong/ssl/kong-default.key",
+    "admin_ssl": true,
+    "cassandra_ssl": false,
+    "lua_package_path": "?/init.lua;./kong/?.lua",
+    "ssl_cert_key": "/usr/local/kong/ssl/kong-default.key",
     "cassandra_data_centers": [
       "dc1:2",
       "dc2:3"
     ],
-    "client_ssl_cert_csr_default": "/usr/local/kong/ssl/kong-default.csr",
-    "ssl_cert_csr_default": "/usr/local/kong/ssl/kong-default.csr",
-    "admin_access_log": "/dev/stdout",
-    "ssl_ciphers": "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256",
-    "proxy_access_log": "/dev/stdout",
-    "upstream_keepalive": 60,
-    "nginx_pid": "/usr/local/kong/pids/nginx.pid",
-    "lua_package_path": "./?.lua;./?/init.lua;",
-    "lua_package_cpath": "",
-    "admin_ssl_port": 8444,
-    "nginx_worker_processes": "auto",
-    "pg_database": "kong",
-    "ssl": true,
-    "database": "cassandra",
-    "proxy_ssl_ip": "0.0.0.0",
+    "cassandra_keyspace": "kong",
     "nginx_optimizations": true,
-    "dns_stale_ttl": 4,
-    "dns_error_ttl": 1,
-    "dns_order": [
-      "LAST",
-      "SRV",
-      "A",
-      "CNAME"
-    ],
-    "cassandra_port": 9042,
-    "nginx_err_logs": "/usr/local/kong/logs/error.log",
-    "db_update_propagation": 0,
-    "dns_no_sync": false,
-    "cassandra_ssl": false,
-    "client_ssl_cert_default": "/usr/local/kong/ssl/kong-default.crt",
-    "proxy_listen": "0.0.0.0:8000",
-    "nginx_acc_logs": "/usr/local/kong/logs/access.log",
-    "pg_host": "127.0.0.1",
-    "custom_plugins": null,
-    "admin_ip": "0.0.0.0",
-    "proxy_ssl_port": 8443,
-    "server_tokens": true,
-    "mem_cache_size": "128m",
-    "pg_user": "kong",
-    "dns_resolver": null,
-    "admin_ssl_cert_key": "/usr/local/kong/ssl/admin-kong-default.key",
-    "ssl_cert_key": "/usr/local/kong/ssl/kong-default.key",
-    "proxy_ip": "0.0.0.0",
-    "cassandra_username": "kong",
-    "nginx_conf": "/usr/local/kong/nginx.conf",
-    "prefix": "/usr/local/kong",
-    "trusted_ips": null,
-    "lua_ssl_verify_depth": 1,
-    "admin_listen": "0.0.0.0:8001",
-    "error_default_type": "text/plain"
-  },
-  "tagline": "Welcome to kong",
-  "plugins": {
-    "available_on_server": {
-      "request-termination": true,
-      "rate-limiting": true,
-      "runscope": true,
-      "aws-lambda": true,
-      "response-ratelimiting": true,
-      "udp-log": true,
-      "syslog": true,
-      "galileo": true,
-      "loggly": true,
-      "bot-detection": true,
-      "acl": true,
-      "file-log": true,
-      "request-transformer": true,
-      "tcp-log": true,
-      "datadog": true,
-      "request-size-limiting": true,
+    "plugins": {
       "hmac-auth": true,
-      "ip-restriction": true,
-      "http-log": true,
+      "response-ratelimiting": true,
       "oauth2": true,
-      "ldap-auth": true,
-      "key-auth": true,
-      "basic-auth": true,
+      "aws-lambda": true,
+      "loggly": true,
       "cors": true,
-      "jwt": true,
+      "udp-log": true,
+      "ip-restriction": true,
+      "file-log": true,
+      "acl": true,
+      "datadog": true,
+      "bot-detection": true,
+      "request-size-limiting": true,
+      "galileo": true,
+      "request-transformer": true,
+      "basic-auth": true,
       "statsd": true,
+      "response-transformer": true,
+      "tcp-log": true,
+      "http-log": true,
+      "key-auth": true,
+      "runscope": true,
+      "request-termination": true,
+      "jwt": true,
       "correlation-id": true,
-      "response-transformer": true
+      "rate-limiting": true,
+      "ldap-auth": true,
+      "syslog": true
     },
-    "enabled_in_cluster": []
+    "nginx_err_logs": "/usr/local/kong/logs/error.log",
+    "cluster_ttl_on_failure": 3600,
+    "pg_port": 5432,
+    "pg_host": "127.0.0.1",
+    "admin_ssl_cert_default": "/usr/local/kong/ssl/admin-kong-default.crt",
+    "cassandra_schema_consensus_timeout": 10000,
+    "cassandra_consistency": "ONE",
+    "lua_package_cpath": "",
+    "upstream_keepalive": 60,
+    "cluster_profile": "wan",
+    "cassandra_repl_factor": 1,
+    "ssl_cert_default": "/usr/local/kong/ssl/kong-default.crt",
+    "latency_tokens": true,
+    "admin_listen": "0.0.0.0:8001",
+    "proxy_port": 8000,
+    "admin_ssl_port": 8444,
+    "nginx_admin_acc_logs": "/usr/local/kong/logs/admin_access.log",
+    "nginx_kong_conf": "/usr/local/kong/nginx-kong.conf",
+    "serf_path": "serf",
+    "cassandra_port": 9042,
+    "cassandra_lb_policy": "RoundRobin",
+    "nginx_acc_logs": "/usr/local/kong/logs/access.log"
   },
-  "version": "0.11.2"
+  "timers": {
+    "pending": 4,
+    "running": 0
+  }
 }
 // GET http://localhost:8001/
 // HTTP/1.1 200 OK
-// Date: Fri, 29 Dec 2017 21:40:43 GMT
+// Date: Tue, 09 Jan 2018 16:45:49 GMT
 // Content-Type: application/json; charset=utf-8
 // Transfer-Encoding: chunked
 // Connection: keep-alive
 // Access-Control-Allow-Origin: *
-// Server: kong/0.11.2
-// Request duration: 0.010969s
+// Server: kong/0.10.2
+// Request duration: 0.170444s
 #+END_SRC
-**** Configure API
+*** Configure API
 
 #+NAME: add-api
 #+BEGIN_SRC restclient
@@ -343,7 +327,7 @@ Content-Type: application/json
 
 {
     "name":"oidc-secure",
-    "upstream_url":"http://localhost:9000/",
+    "upstream_url":"http://oidc-example-api:9000/",
     "strip_uri":"true",
     "uris":"/oidc-secure"
 }
@@ -353,35 +337,36 @@ Content-Type: application/json
 #+RESULTS: add-api
 #+BEGIN_SRC js
 {
-  "preserve_host": false,
-  "upstream_connect_timeout": 60000,
+  "id": "a0e04039-952a-4dd9-a526-4faafa087834",
+  "name": "oidc-secure",
   "upstream_read_timeout": 60000,
   "upstream_send_timeout": 60000,
-  "upstream_url": "http://localhost:9000/",
+  "https_only": false,
   "uris": [
     "/oidc-secure"
   ],
+  "upstream_url": "http://oidc-example-api:9000/",
+  "upstream_connect_timeout": 60000,
+  "created_at": 1515516382717,
+  "preserve_host": false,
   "retries": 5,
-  "https_only": false,
-  "http_if_terminated": false,
-  "name": "oidc-secure",
-  "id": "fa256cce-f6d7-409f-9939-ba8caed986d5",
   "strip_uri": true,
-  "created_at": 1514584027841
+  "http_if_terminated": true
 }
 // POST http://localhost:8001/apis
 // HTTP/1.1 201 Created
-// Date: Fri, 29 Dec 2017 21:47:07 GMT
+// Date: Tue, 09 Jan 2018 16:46:22 GMT
 // Content-Type: application/json; charset=utf-8
 // Transfer-Encoding: chunked
 // Connection: keep-alive
 // Access-Control-Allow-Origin: *
-// Server: kong/0.11.2
-// Request duration: 0.065598s
+// Server: kong/0.10.2
+// Request duration: 0.046667s
 #+END_SRC
 **** Set CORS
 * Tests
-Test appel API avec kong
+
+** Appel Endpoints API via Kong
 #+NAME: testPublic
 #+BEGIN_SRC restclient
 GET http://localhost:8000/oidc-secure/public
@@ -389,14 +374,18 @@ GET http://localhost:8000/oidc-secure/public
 
 #+RESULTS: testPublic
 #+BEGIN_SRC js
-An invalid response was received from the upstream server
-
+{
+  "message": "public",
+  "id": 1
+}
 // GET http://localhost:8000/oidc-secure/public
-// HTTP/1.1 502 Bad Gateway
-// Date: Fri, 29 Dec 2017 21:51:37 GMT
-// Content-Type: text/plain; charset=UTF-8
+// HTTP/1.1 200
+// Date: Tue, 09 Jan 2018 16:46:41 GMT
+// Content-Type: application/json;charset=UTF-8
 // Transfer-Encoding: chunked
 // Connection: keep-alive
-// Server: kong/0.11.2
-// Request duration: 0.010214s
+// X-Kong-Upstream-Latency: 242
+// X-Kong-Proxy-Latency: 221
+// Via: kong/0.10.2
+// Request duration: 0.482431s
 #+END_SRC
