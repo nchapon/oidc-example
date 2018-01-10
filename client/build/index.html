@@ -33,16 +33,12 @@
             <input type="button" v-on:click="callAdmin" class="btn btn-danger" value="Admin Only">
             <br />
 
-
+            <p>Résulat appel API</p>
             <div v-if="message" class="alert alert-success">
-                <span>{{ message }}</span>
+               <span>{{ message }}</span>
             </div>
-            <div v-if="errors" class="alert alert-danger">
-                <ul>
-                    <li v-for="e in errors">
-                        {{ e }}
-                    </li>
-                </ul>
+            <div v-if="error" class="alert alert-danger">
+                <span>{{ message }}</span>
             </div>
 
         </div>

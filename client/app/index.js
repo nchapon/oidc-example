@@ -10,12 +10,15 @@ const HTTP= axios.create({
 })
 
 
+
+
+
 new Vue({
     el: '#app',
 
     data: {
         message: "",
-        errors:[]
+        error:false
     },
     methods: {
         callPublic: function(event){
@@ -26,15 +29,36 @@ new Vue({
                     this.error=false
                 })
                 .catch(e => {
-                    this.message=""
-                    this.errors.push(e)
+                    this.message="Error"
+                    this.error=true
+                    console.log(e)
                 })
         },
         callSecured: function(event){
-            this.message="Secured"
+            HTTP.get('secured')
+                .then(response => {
+                    // JSON responses are automatically parsed.
+                    this.message = response.data
+                    this.error=false
+                })
+                .catch(e => {
+                    this.message="Error"
+                    this.error=true
+                    console.log(e)
+                })
         },
         callAdmin: function(event){
-            this.message="Admin"
+            HTTP.get('admin')
+                .then(response => {
+                    // JSON responses are automatically parsed.
+                    this.message = response.data
+                    this.error=false
+                })
+                .catch(e => {
+                    this.message="Error"
+                    this.error=true
+                    console.log(e)
+                })
         }
     }
 
