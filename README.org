@@ -15,7 +15,11 @@ docker network create oidc-example-bridge
 
 #+NAME: docker-keycloack
 #+BEGIN_SRC shell
-docker run --name oidc-provider -p 8080:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=password jboss/keycloak
+  docker run --name oidc-provider \
+         -p 8080:8080 \
+         -e KEYCLOAK_USER=admin \
+         -e KEYCLOAK_PASSWORD=password \
+         jboss/keycloak
 #+END_SRC
 ** API
 Construire l'application Spring Boot avec Docker
@@ -47,7 +51,7 @@ docker run -d --name oidc-example-api \
  #+END_SRC
 
  #+RESULTS: cassandra
- : 399fe676514e3e40f0632beb407ce35482bd88f1c1e8b3717327cc24fe78b466
+ : 8e0e31d3eb07fc1d535763f6ce114a213a61c1210a6fe040d63a42f75ae48963
 
 *** Database migration
 #+NAME: database-migration
@@ -57,7 +61,7 @@ docker run --rm \
     --link kong-database:kong-database \
     -e "KONG_DATABASE=cassandra" \
     -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database" \
-    kong:latest kong migrations up
+    kong-oidc:latest kong migrations up
 #+END_SRC
 
 #+RESULTS: database-migration
@@ -127,7 +131,7 @@ docker run --rm \
 
 #+NAME: start-kong
 #+BEGIN_SRC shell
-docker run -d --name kong \
+docker run -d --name kong-oidc \
     --net oidc-example-bridge \
     --link kong-database:kong-database \
     -e "KONG_DATABASE=cassandra" \
@@ -140,11 +144,11 @@ docker run -d --name kong \
     -p 8443:8443 \
     -p 8001:8001 \
     -p 8444:8444 \
-    kong:latest
+    kong-oidc:latest
 #+END_SRC
 
 #+RESULTS: start-kong
-: e3e4c96a7ea9fd38aa85fc7bb349aa11550f2f8b33c08f0a1decee773cd11440
+: d1a2da17de24d8e54ab72a3b9099488cc3c81eb166c9618b830df868e244052b
 
 ** Kong configuration
 *** Check
@@ -156,16 +160,16 @@ GET http://localhost:8001/
 #+RESULTS: check-kong
 #+BEGIN_SRC js
 {
-  "hostname": "e3e4c96a7ea9",
+  "hostname": "d1a2da17de24",
   "timers": {
     "running": 0,
     "pending": 4
   },
   "prng_seeds": {
-    "pid: 49": 243129243742,
-    "pid: 52": 222133581313,
-    "pid: 51": 168814421110,
-    "pid: 50": 248208220244
+    "pid: 50": 140196645396,
+    "pid: 51": 132203100632,
+    "pid: 52": 228250252121,
+    "pid: 49": 592099520883
   },
   "lua_version": "LuaJIT 2.1.0-beta2",
   "configuration": {
@@ -336,19 +340,19 @@ GET http://localhost:8001/
       "correlation-id": true,
       "response-transformer": true
     },
-    "enabled_in_cluster": []
+    "enabled_in_cluster": null
   },
-  "version": "0.11.2"
+  "version": "0.11.1"
 }
 // GET http://localhost:8001/
 // HTTP/1.1 200 OK
-// Date: Wed, 10 Jan 2018 09:58:37 GMT
+// Date: Tue, 16 Jan 2018 15:14:49 GMT
 // Content-Type: application/json; charset=utf-8
 // Transfer-Encoding: chunked
 // Connection: keep-alive
 // Access-Control-Allow-Origin: *
-// Server: kong/0.11.2
-// Request duration: 2.082000s
+// Server: kong/0.11.1
+// Request duration: 0.028760s
 #+END_SRC
 
 
@@ -384,19 +388,19 @@ Content-Type: application/json
   "https_only": false,
   "http_if_terminated": false,
   "name": "oidc-secure",
-  "id": "d538449f-3678-489c-ac24-e481262a4d0e",
+  "id": "e0a1038c-cf28-4b7c-89ee-de746eb2e664",
   "strip_uri": true,
-  "created_at": 1515580005846
+  "created_at": 1516121043315
 }
 // POST http://localhost:8001/apis
 // HTTP/1.1 201 Created
-// Date: Wed, 10 Jan 2018 10:26:45 GMT
+// Date: Tue, 16 Jan 2018 16:44:03 GMT
 // Content-Type: application/json; charset=utf-8
 // Transfer-Encoding: chunked
 // Connection: keep-alive
 // Access-Control-Allow-Origin: *
-// Server: kong/0.11.2
-// Request duration: 0.007602s
+// Server: kong/0.11.1
+// Request duration: 0.069336s
 #+END_SRC
 **** Set CORS
 
@@ -414,10 +418,10 @@ Content-Type: application/json
 #+RESULTS: add-cors-plugin
 #+BEGIN_SRC js
 {
-  "api_id": "d538449f-3678-489c-ac24-e481262a4d0e",
+  "api_id": "e0a1038c-cf28-4b7c-89ee-de746eb2e664",
   "name": "cors",
   "enabled": true,
-  "id": "7f680943-e2b8-41ca-8082-58ce5c7b9481",
+  "id": "c4e064a2-d5f4-46eb-bd19-36e8ff9ab297",
   "config": {
     "preflight_continue": false,
     "credentials": false,
@@ -425,17 +429,25 @@ Content-Type: application/json
       "http://localhost:4040"
     ]
   },
-  "created_at": 1515580016026
+  "created_at": 1516122180065
 }
 // POST http://localhost:8001/apis/oidc-secure/plugins
 // HTTP/1.1 201 Created
-// Date: Wed, 10 Jan 2018 10:26:56 GMT
+// Date: Tue, 16 Jan 2018 17:03:00 GMT
 // Content-Type: application/json; charset=utf-8
 // Transfer-Encoding: chunked
 // Connection: keep-alive
 // Access-Control-Allow-Origin: *
-// Server: kong/0.11.2
-// Request duration: 0.023067s
+// Server: kong/0.11.1
+// Request duration: 0.057288s
+#+END_SRC
+**** OIDC Config
+#+NAME: configure-oidc
+#+BEGIN_SRC shell
+http POST localhost:8001/apis/oidc-secure/plugins name=oidc \
+    config.client_id="my-service" \
+    config.client_secret="d1276bd8-fa94-4f08-b62f-f1308d35c7f7" \
+    config.discovery="http://localhost:8080/auth/realms/master/.well-known/openid-configuration"
 #+END_SRC
 
 
