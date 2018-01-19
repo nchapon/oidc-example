@@ -12,16 +12,20 @@ docker network create oidc-example-bridge
 
 
 ** Keycloack
+*** Docker
+ #+NAME: docker-keycloack
+ #+BEGIN_SRC shell
+   docker run --name oidc-provider \
+            --net oidc-example-bridge \
+            -p 8080:8080 \
+            -e KEYCLOAK_USER=admin \
+            -e KEYCLOAK_PASSWORD=password \
+            jboss/keycloak
+ #+END_SRC
+*** Configuration
+    - Création du User
+    - Claims group
 
-#+NAME: docker-keycloack
-#+BEGIN_SRC shell
-  docker run --name oidc-provider \
-           --net oidc-example-bridge \
-           -p 8080:8080 \
-           -e KEYCLOAK_USER=admin \
-           -e KEYCLOAK_PASSWORD=password \
-           jboss/keycloak
-#+END_SRC
 ** API
 Construire l'application Spring Boot avec Docker
 
@@ -39,7 +43,7 @@ docker run -d --name oidc-example-api \
 #+END_SRC
 
 #+RESULTS: docker-run-api
-: 008b5f5d07a86e1cf46a7a8ddf0fe8102685ef5128f1391dc4b7879f515b8917
+: 641360feb88f7a461512c6e68986441028df7d98979c737f173d96f66e349f64
 
 ** Kong
 *** Base de données

@@ -1,37 +1,39 @@
 package fr.cnp.examples.oidc.api.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.cnp.examples.oidc.api.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
-@Component
-public class RequestContextUserFilter implements Filter {
 
-    private static final Logger log = LoggerFactory.getLogger(RequestContextUserFilter.class);
+public class RequestContextUserFilter extends GenericFilterBean {
 
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public void doFilter(
+            ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain
+    ) throws IOException, ServletException {
 
-    }
-
-    public void doFilter(ServletRequest request,
-                         ServletResponse response,
-                         FilterChain chain) throws IOException, ServletException {
-
-
-        String user = RequestContextUser.findUser();
-        log.info("XXXX > User");
-
-        chain.doFilter(request,response);
-    }
-
-    @Override
-    public void destroy() {
-
+        HttpServletRequest req = (HttpServletRequest) servletRequest;
+        User user = RequestContextUser.findUser();
+        if (user != null) {
+            SecurityContextHolder.clearContext();
+            Authentication authentication =
+                    new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+        chain.doFilter(req, servletResponse);
     }
 }
