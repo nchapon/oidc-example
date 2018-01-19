@@ -39,7 +39,7 @@ docker run -d --name oidc-example-api \
 #+END_SRC
 
 #+RESULTS: docker-run-api
-: 74a7841e84928f6d292c22bc492d1a5abd0a8983d5354c7cde238bedd7d7cb0a
+: 008b5f5d07a86e1cf46a7a8ddf0fe8102685ef5128f1391dc4b7879f515b8917
 
 ** Kong
 *** Base de données
@@ -443,6 +443,7 @@ Content-Type: application/json
 // Request duration: 0.023805s
 #+END_SRC
 **** OIDC Config
+Cf https://github.com/nokia/kong-oidc
 #+NAME: configure-oidc
 #+BEGIN_SRC shell
   http POST localhost:8001/apis/oidc-secure/plugins name=oidc \
