@@ -16,10 +16,11 @@ docker network create oidc-example-bridge
 #+NAME: docker-keycloack
 #+BEGIN_SRC shell
   docker run --name oidc-provider \
-         -p 8080:8080 \
-         -e KEYCLOAK_USER=admin \
-         -e KEYCLOAK_PASSWORD=password \
-         jboss/keycloak
+           --net oidc-example-bridge \
+           -p 8080:8080 \
+           -e KEYCLOAK_USER=admin \
+           -e KEYCLOAK_PASSWORD=password \
+           jboss/keycloak
 #+END_SRC
 ** API
 Construire l'application Spring Boot avec Docker
@@ -388,19 +389,19 @@ Content-Type: application/json
   "https_only": false,
   "http_if_terminated": false,
   "name": "oidc-secure",
-  "id": "e0a1038c-cf28-4b7c-89ee-de746eb2e664",
+  "id": "84216ba0-4cce-4493-9475-aebd0df40e3f",
   "strip_uri": true,
-  "created_at": 1516121043315
+  "created_at": 1516286379924
 }
 // POST http://localhost:8001/apis
 // HTTP/1.1 201 Created
-// Date: Tue, 16 Jan 2018 16:44:03 GMT
+// Date: Thu, 18 Jan 2018 14:39:39 GMT
 // Content-Type: application/json; charset=utf-8
 // Transfer-Encoding: chunked
 // Connection: keep-alive
 // Access-Control-Allow-Origin: *
 // Server: kong/0.11.1
-// Request duration: 0.069336s
+// Request duration: 0.202721s
 #+END_SRC
 **** Set CORS
 
@@ -418,10 +419,10 @@ Content-Type: application/json
 #+RESULTS: add-cors-plugin
 #+BEGIN_SRC js
 {
-  "api_id": "e0a1038c-cf28-4b7c-89ee-de746eb2e664",
+  "api_id": "84216ba0-4cce-4493-9475-aebd0df40e3f",
   "name": "cors",
   "enabled": true,
-  "id": "c4e064a2-d5f4-46eb-bd19-36e8ff9ab297",
+  "id": "12d241a1-d939-40c4-ab32-388f04c112b6",
   "config": {
     "preflight_continue": false,
     "credentials": false,
@@ -429,26 +430,43 @@ Content-Type: application/json
       "http://localhost:4040"
     ]
   },
-  "created_at": 1516122180065
+  "created_at": 1516286390275
 }
 // POST http://localhost:8001/apis/oidc-secure/plugins
 // HTTP/1.1 201 Created
-// Date: Tue, 16 Jan 2018 17:03:00 GMT
+// Date: Thu, 18 Jan 2018 14:39:50 GMT
 // Content-Type: application/json; charset=utf-8
 // Transfer-Encoding: chunked
 // Connection: keep-alive
 // Access-Control-Allow-Origin: *
 // Server: kong/0.11.1
-// Request duration: 0.057288s
+// Request duration: 0.023805s
 #+END_SRC
 **** OIDC Config
 #+NAME: configure-oidc
 #+BEGIN_SRC shell
-http POST localhost:8001/apis/oidc-secure/plugins name=oidc \
-    config.client_id="my-service" \
-    config.client_secret="d1276bd8-fa94-4f08-b62f-f1308d35c7f7" \
-    config.discovery="http://localhost:8080/auth/realms/master/.well-known/openid-configuration"
+  http POST localhost:8001/apis/oidc-secure/plugins name=oidc \
+      config.client_id="my-service" \
+      config.client_secret="419bd3c3-da88-45f2-9e78-64940df58c5a" \
+      config.discovery="http://oidc-provider:8080/auth/realms/master/.well-known/openid-configuration"
 #+END_SRC
+**** GET
+
+#+NAME: get oidc-secure
+#+BEGIN_SRC shell
+http GET localhost:8001/apis/oidc-secure
+#+END_SRC
+
+#+RESULTS: get oidc-secure
+| <html>                                  |             |       |                     |
+| <head><title>415                        | Unsupported | Media | Type</title></head> |
+| <body                                   | white       |       |                     |
+| <center><h1>415                         | Unsupported | Media | Type</h1></center>  |
+| <hr><center>openresty/1.11.2.4</center> |             |       |                     |
+| </body>                                 |             |       |                     |
+| </html>                                 |             |       |                     |
+
+
 
 
 * Tests
