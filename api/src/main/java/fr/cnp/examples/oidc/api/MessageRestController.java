@@ -1,6 +1,9 @@
 package fr.cnp.examples.oidc.api;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -12,19 +15,26 @@ public class MessageRestController {
 
     @GetMapping("/public")
     public Message getPublic(){
-        return new Message(1L,"public");
+        return new Message("public");
     }
 
     @GetMapping("/secured")
+    @PreAuthorize("hasAuthority('users')")
     public Message getSecured(){
-        return new Message(2L,"secured");
+        return new Message("secured");
     }
 
     @GetMapping("/admin")
+    @PreAuthorize("hasAuthority('admins')")
     public Message getAdmin(){
-        return new Message(3L,"admin");
+        return new Message("admin");
     }
 
+    @GetMapping("/403")
+    @ResponseStatus(value= HttpStatus.FORBIDDEN)
+    public Message accessDenied(){
+        return new Message("Access Denied");
+    }
 
 
 }

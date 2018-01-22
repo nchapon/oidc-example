@@ -1,5 +1,6 @@
 package fr.cnp.examples.oidc.api;
 
+import fr.cnp.examples.oidc.api.config.RequestContextUser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.junit.Assert.*;
 
-@WebMvcTest
+@WebMvcTest(secure = false)
 @RunWith(SpringRunner.class)
 public class MessageRestControllerTest {
 
@@ -24,7 +25,6 @@ public class MessageRestControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get("/public"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("id").value(1L))
                 .andExpect(MockMvcResultMatchers.jsonPath("message").value("public"))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_UTF8));
     }
@@ -35,7 +35,6 @@ public class MessageRestControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get("/secured"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("id").value(2L))
                 .andExpect(MockMvcResultMatchers.jsonPath("message").value("secured"))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_UTF8));
     }
@@ -46,7 +45,6 @@ public class MessageRestControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get("/admin"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("id").value(3L))
                 .andExpect(MockMvcResultMatchers.jsonPath("message").value("admin"))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_UTF8));
     }

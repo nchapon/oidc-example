@@ -43,7 +43,7 @@ docker run -d --name oidc-example-api \
 #+END_SRC
 
 #+RESULTS: docker-run-api
-: 641360feb88f7a461512c6e68986441028df7d98979c737f173d96f66e349f64
+: 74ac0d3aea1814486ae08c47174c6f69b6f66f614241567c02af45f1efe37054
 
 ** Kong
 *** Base de données
@@ -498,4 +498,59 @@ GET http://localhost:8000/oidc-secure/public
 // X-Kong-Proxy-Latency: 203
 // Via: kong/0.11.2
 // Request duration: 0.583607s
+#+END_SRC
+** Test API
+*** GET secured
+#+NAME: get-public
+#+BEGIN_SRC restclient
+  GET http://localhost:9000/secured
+  X-Userinfo: {"user.fullName":"alice","user.email":"alice@gmail.com","groups":["users"],"id":"60f65308-3510-40ca-83f0-e9c0151cc680","sub":"60f65308-3510-40ca-83f0-e9c0151cc680"}
+
+#+END_SRC
+
+#+RESULTS: get-public
+#+BEGIN_SRC js
+{
+  "message": "admin"
+}
+// GET http://localhost:9000/admin
+// HTTP/1.1 200
+// X-Content-Type-Options: nosniff
+// X-XSS-Protection: 1; mode=block
+// Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+// Pragma: no-cache
+// Expires: 0
+// X-Frame-Options: DENY
+// Content-Type: application/json;charset=UTF-8
+// Transfer-Encoding: chunked
+// Date: Mon, 22 Jan 2018 15:08:49 GMT
+// Request duration: 81.008280s
+#+END_SRC
+
+*** GET admin
+#+NAME: get-admin
+#+BEGIN_SRC restclient
+  GET http://localhost:9000/admin
+  x-userinfo: {"user.fullName":"alice","user.email":"alice@gmail.com","groups":["users","admins"],"id":"60f65308-3510-40ca-83f0-e9c0151cc680","sub":"60f65308-3510-40ca-83f0-e9c0151cc680"}
+
+#+END_SRC
+
+#+RESULTS: get-admin
+#+BEGIN_SRC js
+{
+  "message": "admin"
+}
+// GET http://localhost:9000/admin
+// HTTP/1.1 200
+// X-Content-Type-Options: nosniff
+// X-XSS-Protection: 1; mode=block
+// Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+// Pragma: no-cache
+// Expires: 0
+// X-Frame-Options: DENY
+// Set-Cookie: JSESSIONID=F230F8749407669CCBCA1E8AEAAA0F53; Path=/; HttpOnly
+// Content-Type: application/json;charset=UTF-8
+// Transfer-Encoding: chunked
+// Date: Mon, 22 Jan 2018 15:09:54 GMT
+// Request duration: 0.202655s
 #+END_SRC

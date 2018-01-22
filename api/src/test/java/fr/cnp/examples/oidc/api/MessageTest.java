@@ -14,8 +14,7 @@ public class MessageTest {
     @Test
     public void creation() {
         // Test Lombok plugin
-        Message m = new Message(1L,"public");
-        assertThat(m.getId()).isEqualTo(1L);
+        Message m = new Message("public");
         assertThat(m.getMessage()).isEqualTo("public");
 
     }
