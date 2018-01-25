@@ -12,22 +12,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class MessageRestController {
 
-
-    @GetMapping("/public")
-    public Message getPublic(){
-        return new Message("public");
-    }
-
     @GetMapping("/secured")
     @PreAuthorize("hasAuthority('users')")
     public Message getSecured(){
-        return new Message("secured");
+        return new Message("Hello user");
     }
 
     @GetMapping("/admin")
     @PreAuthorize("hasAuthority('admins')")
     public Message getAdmin(){
-        return new Message("admin");
+        return new Message("Hello admin");
     }
 
     @GetMapping("/403")

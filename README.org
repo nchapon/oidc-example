@@ -43,7 +43,7 @@ docker run -d --name oidc-example-api \
 #+END_SRC
 
 #+RESULTS: docker-run-api
-: 74ac0d3aea1814486ae08c47174c6f69b6f66f614241567c02af45f1efe37054
+: ad421f4691a4f0651db59f4d3b8dd225d8a76850d8d5e3279e955554daaa1673
 
 ** Kong
 *** Base de données
@@ -385,27 +385,27 @@ Content-Type: application/json
   "upstream_connect_timeout": 60000,
   "upstream_read_timeout": 60000,
   "upstream_send_timeout": 60000,
-  "upstream_url": "http://oidc-example-api:9000/",
+  "upstream_url": "http://oidc-provider:8080/auth",
   "uris": [
-    "/oidc-secure"
+    "/auth"
   ],
   "retries": 5,
   "https_only": false,
   "http_if_terminated": false,
-  "name": "oidc-secure",
-  "id": "84216ba0-4cce-4493-9475-aebd0df40e3f",
+  "name": "auth",
+  "id": "403b07d7-9378-4117-9bc7-2c6251c60afc",
   "strip_uri": true,
-  "created_at": 1516286379924
+  "created_at": 1516704794258
 }
 // POST http://localhost:8001/apis
 // HTTP/1.1 201 Created
-// Date: Thu, 18 Jan 2018 14:39:39 GMT
+// Date: Tue, 23 Jan 2018 10:53:14 GMT
 // Content-Type: application/json; charset=utf-8
 // Transfer-Encoding: chunked
 // Connection: keep-alive
 // Access-Control-Allow-Origin: *
 // Server: kong/0.11.1
-// Request duration: 0.202721s
+// Request duration: 0.090288s
 #+END_SRC
 **** Set CORS
 
@@ -470,8 +470,59 @@ http GET localhost:8001/apis/oidc-secure
 | <hr><center>openresty/1.11.2.4</center> |             |       |                     |
 | </body>                                 |             |       |                     |
 | </html>                                 |             |       |                     |
+*** Proxy AUTH
+**** Auth
+ #+NAME: proxy-auth
+ #+BEGIN_SRC restclient
+ POST http://localhost:8001/apis
+ Content-Type: application/json
 
+ {
+     "name":"auth",
+     "upstream_url":"http://oidc-provider:8080/auth",
+     "strip_uri":"true",
+     "uris":"/auth"
+ }
+ #+END_SRC
+**** Cors
 
+#+NAME: auth-cors
+#+BEGIN_SRC restclient
+POST http://localhost:8001/apis/auth/plugins
+Content-Type: application/json
+
+{
+    "name":"cors",
+    "config.origins":"http://localhost:8888"
+}
+#+END_SRC
+
+#+RESULTS: auth-cors
+#+BEGIN_SRC js
+{
+  "api_id": "403b07d7-9378-4117-9bc7-2c6251c60afc",
+  "name": "cors",
+  "enabled": true,
+  "id": "34df1964-3a54-48b9-b2cf-b190e8e1f355",
+  "config": {
+    "preflight_continue": false,
+    "credentials": false,
+    "origins": [
+      "http://localhost:8888"
+    ]
+  },
+  "created_at": 1516704965430
+}
+// POST http://localhost:8001/apis/auth/plugins
+// HTTP/1.1 201 Created
+// Date: Tue, 23 Jan 2018 10:56:05 GMT
+// Content-Type: application/json; charset=utf-8
+// Transfer-Encoding: chunked
+// Connection: keep-alive
+// Access-Control-Allow-Origin: *
+// Server: kong/0.11.1
+// Request duration: 0.044488s
+#+END_SRC
 
 
 * Tests

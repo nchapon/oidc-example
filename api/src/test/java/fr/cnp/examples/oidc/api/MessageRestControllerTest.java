@@ -21,21 +21,11 @@ public class MessageRestControllerTest {
     MockMvc mockMvc;
 
     @Test
-    public void getPublicMessage() throws Exception {
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/public"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("message").value("public"))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_UTF8));
-    }
-
-
-    @Test
     public void getSecuredMessage() throws Exception {
 
         mockMvc.perform(MockMvcRequestBuilders.get("/secured"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("message").value("secured"))
+                .andExpect(MockMvcResultMatchers.jsonPath("message").value("Hello user"))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_UTF8));
     }
 
@@ -45,12 +35,8 @@ public class MessageRestControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get("/admin"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("message").value("admin"))
+                .andExpect(MockMvcResultMatchers.jsonPath("message").value("Hello admin"))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_UTF8));
     }
-
-
-
-
 
 }
