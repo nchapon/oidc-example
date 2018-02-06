@@ -36,7 +36,7 @@ public class RequestContextUser {
                             (req = ((ServletRequestAttributes) reqAttr).getRequest()) != null &&
                             (userInfoHeader = req.getHeader(USER_HEADER)) != null
                     ) {
-                log.debug("Found user info from {} header with value {}", USER_HEADER, userInfoHeader);
+                log.info("Found user info from {} header with value {}", USER_HEADER, userInfoHeader);
                 User user =  mapper.readValue(userInfoHeader, User.class);
                 req.setAttribute(User.class.getName(), user);
                 return user;
@@ -45,7 +45,7 @@ public class RequestContextUser {
             log.error("Unable to resolve user from {} header", USER_HEADER, e);
         }
 
-        log.debug("Did not find user from {} header.", USER_HEADER);
+        log.info("Did not find user from {} header.", USER_HEADER);
         return null;
     }
 

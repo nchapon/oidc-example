@@ -43,7 +43,7 @@ docker run -d --name oidc-example-api \
 #+END_SRC
 
 #+RESULTS: docker-run-api
-: ad421f4691a4f0651db59f4d3b8dd225d8a76850d8d5e3279e955554daaa1673
+: f7e7a5738c8d51584d3608c33308ee23e7043d63582cc5070d5f6a64d9985343
 
 ** Kong
 *** Base de données
@@ -155,8 +155,8 @@ docker run -d --name kong-oidc \
 #+RESULTS: start-kong
 : d1a2da17de24d8e54ab72a3b9099488cc3c81eb166c9618b830df868e244052b
 
-** Kong configuration
-*** Check
+** Kong OIDC configuration
+*** Check Kong Config
 #+NAME: check-kong
 #+BEGIN_SRC restclient
 GET http://localhost:8001/
@@ -165,16 +165,16 @@ GET http://localhost:8001/
 #+RESULTS: check-kong
 #+BEGIN_SRC js
 {
-  "hostname": "d1a2da17de24",
+  "hostname": "32fe339f68f1",
   "timers": {
     "running": 0,
     "pending": 4
   },
   "prng_seeds": {
-    "pid: 50": 140196645396,
-    "pid: 51": 132203100632,
-    "pid: 52": 228250252121,
-    "pid: 49": 592099520883
+    "pid: 20": 255222282497,
+    "pid: 21": 140125145895,
+    "pid: 22": 521921017148,
+    "pid: 23": 158128110215
   },
   "lua_version": "LuaJIT 2.1.0-beta2",
   "configuration": {
@@ -188,28 +188,29 @@ GET http://localhost:8001/
     "client_body_buffer_size": "8k",
     "plugins": {
       "oauth2": true,
+      "oidc": true,
       "ip-restriction": true,
-      "acl": true,
       "request-transformer": true,
       "file-log": true,
       "udp-log": true,
-      "loggly": true,
-      "galileo": true,
-      "syslog": true,
-      "request-size-limiting": true,
       "bot-detection": true,
+      "galileo": true,
+      "loggly": true,
+      "request-size-limiting": true,
+      "syslog": true,
+      "acl": true,
       "response-ratelimiting": true,
-      "aws-lambda": true,
       "tcp-log": true,
       "datadog": true,
-      "runscope": true,
+      "aws-lambda": true,
       "hmac-auth": true,
-      "rate-limiting": true,
+      "runscope": true,
       "http-log": true,
-      "request-termination": true,
+      "rate-limiting": true,
       "ldap-auth": true,
       "key-auth": true,
       "basic-auth": true,
+      "request-termination": true,
       "cors": true,
       "jwt": true,
       "statsd": true,
@@ -295,7 +296,9 @@ GET http://localhost:8001/
     "proxy_listen": "0.0.0.0:8000",
     "nginx_acc_logs": "/usr/local/kong/logs/access.log",
     "pg_host": "127.0.0.1",
-    "custom_plugins": null,
+    "custom_plugins": [
+      "oidc"
+    ],
     "admin_ip": "0.0.0.0",
     "proxy_ssl_port": 8443,
     "server_tokens": true,
@@ -339,29 +342,30 @@ GET http://localhost:8001/
       "ldap-auth": true,
       "key-auth": true,
       "basic-auth": true,
+      "oidc": true,
       "cors": true,
       "jwt": true,
       "statsd": true,
       "correlation-id": true,
       "response-transformer": true
     },
-    "enabled_in_cluster": null
+    "enabled_in_cluster": [
+      "oidc",
+      "cors"
+    ]
   },
   "version": "0.11.1"
 }
 // GET http://localhost:8001/
 // HTTP/1.1 200 OK
-// Date: Tue, 16 Jan 2018 15:14:49 GMT
+// Date: Mon, 05 Feb 2018 10:39:19 GMT
 // Content-Type: application/json; charset=utf-8
 // Transfer-Encoding: chunked
 // Connection: keep-alive
 // Access-Control-Allow-Origin: *
 // Server: kong/0.11.1
-// Request duration: 0.028760s
+// Request duration: 0.010566s
 #+END_SRC
-
-
-
 
 *** Configure API
 
@@ -416,7 +420,8 @@ Content-Type: application/json
 
 {
     "name":"cors",
-    "config.origins":"http://localhost:4040"
+    "config.origins":"http://localhost:4040",
+    "config.credentials":"true"
 }
 #+END_SRC
 
@@ -426,25 +431,25 @@ Content-Type: application/json
   "api_id": "84216ba0-4cce-4493-9475-aebd0df40e3f",
   "name": "cors",
   "enabled": true,
-  "id": "12d241a1-d939-40c4-ab32-388f04c112b6",
+  "id": "dfc2af4f-f593-467c-8fa3-0a14ea1171f7",
   "config": {
     "preflight_continue": false,
-    "credentials": false,
     "origins": [
       "http://localhost:4040"
-    ]
+    ],
+    "credentials": true
   },
-  "created_at": 1516286390275
+  "created_at": 1517242567323
 }
 // POST http://localhost:8001/apis/oidc-secure/plugins
 // HTTP/1.1 201 Created
-// Date: Thu, 18 Jan 2018 14:39:50 GMT
+// Date: Mon, 29 Jan 2018 16:16:07 GMT
 // Content-Type: application/json; charset=utf-8
 // Transfer-Encoding: chunked
 // Connection: keep-alive
 // Access-Control-Allow-Origin: *
 // Server: kong/0.11.1
-// Request duration: 0.023805s
+// Request duration: 0.036252s
 #+END_SRC
 **** OIDC Config
 Cf https://github.com/nokia/kong-oidc
@@ -523,8 +528,6 @@ Content-Type: application/json
 // Server: kong/0.11.1
 // Request duration: 0.044488s
 #+END_SRC
-
-
 * Tests
 
 ** Appel Endpoints API via Kong

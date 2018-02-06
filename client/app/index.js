@@ -10,9 +10,6 @@ const HTTP= axios.create({
 })
 
 
-
-
-
 new Vue({
     el: '#app',
 
@@ -25,6 +22,7 @@ new Vue({
             HTTP.get('public')
                 .then(response => {
                     // JSON responses are automatically parsed.
+
                     this.message = response.data
                     this.error=false
                 })
@@ -35,20 +33,32 @@ new Vue({
                 })
         },
         callSecured: function(event){
-            HTTP.get('secured')
-                .then(response => {
-                    // JSON responses are automatically parsed.
-                    this.message = response.data
-                    this.error=false
-                })
-                .catch(e => {
-                    this.message="Error"
-                    this.error=true
-                    console.log(e)
-                })
+            // HTTP.get('secured',{withCredentials:true})
+            //     .then(response => {
+            //         // JSON responses are automatically parsed.
+            //         this.message = response.headers
+            //         this.error=false
+            //     })
+            //     .catch(e => {
+            //         this.message="Error"
+            //         this.error=true
+            //         console.log(e)
+            //     })
+            fetch("http://localhost:8000/oidc-secure/secured",
+                  {redirect:'follow',
+                   credentials:'include'})
+                .then(function (response) {
+                    console.log(response)
+                    return {mesage:response.toString()};
+                }).then(result => {
+                    console.log(result);
+
+                this.message =  result
+                this.error=false
+            })
         },
         callAdmin: function(event){
-            HTTP.get('admin')
+            HTTP.get('admin',{withCredentials:true})
                 .then(response => {
                     // JSON responses are automatically parsed.
                     this.message = response.data

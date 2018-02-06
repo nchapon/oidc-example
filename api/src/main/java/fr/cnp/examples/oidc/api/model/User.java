@@ -28,6 +28,8 @@ public class User implements UserDetails {
 
     List<String> groups = new ArrayList<>();
 
+
+
     public String getEmail() {
         return email;
     }
