@@ -43,7 +43,7 @@ docker run -d --name oidc-example-api \
 #+END_SRC
 
 #+RESULTS: docker-run-api
-: f7e7a5738c8d51584d3608c33308ee23e7043d63582cc5070d5f6a64d9985343
+: 8eb15ad777982c25e160adacbfa4653e40b8ad7da0dda91e64ef3bc935ba817d
 
 ** Kong
 *** Base de données
